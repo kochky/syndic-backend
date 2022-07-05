@@ -196,6 +196,7 @@ module.exports = buildSchema(`
     finances:[Finance]
     contacts:[Contact!]
     messages:[Message!]
+    userInfo:LoginReturnType!
   }
 
   type Mutation {

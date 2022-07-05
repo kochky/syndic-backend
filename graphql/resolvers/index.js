@@ -617,5 +617,27 @@ forgotPassword:async(args)=> {
       throw error
   }
 },
+userInfo:async (args,req) => {
+  try {
+    if(!req.isAuth){
+      throw new Error ("Non autorisé")
+    }
+      const user = await User.findOne({ _id:req.userId });
+      if (!user) {
+        throw new Error('Identifiant invalide')
+    }
+    const token = jwt.sign({ _id: user._id},'RANDOM_TOKEN_SECRET')
+
+      return {
+        token,
+         ...user._doc,
+         userId:user._id
+
+
+      }
+  } catch (error) {
+      return error
+  }
+}
   
 }
