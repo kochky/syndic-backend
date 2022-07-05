@@ -151,8 +151,8 @@ module.exports = {
       const user = await User.findOne({_id:req.userId});
 
       const message = {
-        from: 'koch.christopher@hotmail.fr', // Sender address
-        to: 'koch.christopher@hotmail.fr',         // List of recipients
+        from: `${process.env.EMAIL_USER}`, // Sender address
+        to: `${process.env.EMAIL_USER}`,         // List of recipients
         subject: 'Info à modérer', // Subject line
         text: `Une info a été créée par ${user.name}`, // Plain text body
     };
@@ -209,7 +209,35 @@ module.exports = {
         const info= await Info.findOneAndUpdate({_id:args.infos._id},{status:args.infos.status},{
             new:true
         })
-        return { ...info._doc}
+        if(args.infos.status==="Publié"){
+          const usersFetched = await User.find()
+          return usersFetched.map(user => {
+        
+            const message = {
+              from: `${process.env.EMAIL_USER}`, // Sender address
+              to: `${user.email}`,         // List of recipients
+              subject: 'Actualités sur Ma Copro', // Subject line
+              text: `Bonjour
+              
+              Voici la nouvelle actualité concernant la copropriété Villa Laure:
+              ${info.description}
+        
+               
+               http://copro-villa-laure.fr/dashboard
+        
+        
+                Christopher`, // Plain text body
+          };
+          transport.sendMail(message, function(err, info) {
+            if (err) {
+              console.log(err)
+            } else {
+              console.log(info);
+            }
+          });
+        })
+      }
+      return { ...info._doc}
 
       }catch(error){
           
@@ -223,6 +251,35 @@ module.exports = {
       const incident= await Incident.findOneAndUpdate({_id:args.incidents._id},{status:args.incidents.status},{
           new:true
       })
+      if(args.incidents.status==="Publié"){
+        const usersFetched = await User.find()
+        return usersFetched.map(user => {
+      
+          const message = {
+            from: `${process.env.EMAIL_USER}`, // Sender address
+            to: `${user.email}`,         // List of recipients
+            subject: 'Incidents sur Ma Copro', // Subject line
+            text: `Bonjour
+            
+           Un incident a été remonté concernant la copropriété Villa Laure:
+
+            ${incident.description}
+      
+             
+             http://copro-villa-laure.fr/dashboard
+      
+      
+              Christopher`, // Plain text body
+        };
+        transport.sendMail(message, function(err, info) {
+          if (err) {
+            console.log(err)
+          } else {
+            console.log(info);
+          }
+        });
+      })
+    }
       return { ...incident._doc}
 
     }catch(error){
@@ -266,8 +323,8 @@ module.exports = {
       const user = await User.findOne({_id:req.userId});
 
       const message = {
-        from: 'koch.christopher@hotmail.fr', // Sender address
-        to: 'koch.christopher@hotmail.fr',         // List of recipients
+        from: `${process.env.EMAIL_USER}`, // Sender address
+        to: `${process.env.EMAIL_USER}`,         // List of recipients
         subject: 'Incident à modérer', // Subject line
         text: `Un incident a été remonté par ${user.name}`, // Plain text body
     };
@@ -449,6 +506,29 @@ createProvision:async(args,req)=> {
       {"name":args.user.name},
       {"$push":{"provision":{'year':args.user.year,'montant':args.user.montant,'paid':false}}}
     )
+    const user= await User.findOne({_id:req.userId})
+    const message = {
+      from: `${process.env.EMAIL_USER}`, // Sender address
+      to: `${user.email}`,         // List of recipients
+      subject: 'Un appel de fonds vous concerne', // Subject line
+      text: `Bonjour
+
+
+       Une demande de provision pour l'année ${args.user.year}  d'un montant de ${args.user.montant}€ vous est adressée sur la plateforme Ma Copro'.
+
+
+       http://copro-villa-laure.fr/dashboard
+
+
+        Christopher`, // Plain text body
+  };
+  transport.sendMail(message, function(err, info) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log(info);
+    }
+});
     return { ...newProvision._doc}
 
   } catch (error ){
@@ -499,7 +579,29 @@ modifyProvisionStatus:async(args,req)=> {
       {"name":args.user.name,"provision.montant":args.user.montant},
       {"$set":{"provision.$.paid":args.user.paid}}
     )
- 
+ const user= await User.findOne({"name":args.user.name})
+    const message = {
+      from: `${process.env.EMAIL_USER}`, // Sender address
+      to: `${user.email}`,         // List of recipients
+      subject: 'Provision', // Subject line
+      text: `Bonjour
+
+
+     Le status de votre provision d'un montant de ${args.user.montant}€ a été modifié.
+
+       
+       http://copro-villa-laure.fr/dashboard
+
+
+        Christopher`, // Plain text body
+  };
+  transport.sendMail(message, function(err, info) {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log(info);
+    }
+});
      return { ...provision._doc}
 
   }catch(error){
@@ -540,10 +642,15 @@ createMessage:async(args,req)=> {
     const user = await User.findOne({_id:req.userId});
     const destinataire= await User.findOne({name:args.messages.destinataire})
     const email = {
-      from: 'koch.christopher@hotmail.fr', // Sender address
+      from: `${process.env.EMAIL_USER}`, // Sender address
       to: `${destinataire.email}`,         // List of recipients
       subject: 'Nouveau message sur la plateforme Ma Copro', // Subject line
-      text: `${user.name} vous a envoyé un message sur Ma Copro' `, // Plain text body
+      text: `Bonjour !
+      
+      ${user.name} vous a envoyé un message sur Ma Copro
+      
+      http://copro-villa-laure.fr/'
+       `, // Plain text body
   };
   transport.sendMail(email, function(err, info) {
     if (err) {
@@ -600,7 +707,7 @@ forgotPassword:async(args)=> {
     
 
     const email = {
-      from: 'koch.christopher@hotmail.fr', // Sender address
+      from: `${process.env.EMAIL_USER}`, // Sender address
       to: `${user.email}`,         // List of recipients
       subject: 'Mot de pass oublié', // Subject line
       text: `Votre mot de passe provisoire est  '${randomstring}' `, // Plain text body
